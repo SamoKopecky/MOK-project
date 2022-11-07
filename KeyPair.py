@@ -1,4 +1,4 @@
-from common import generate_ring_vec, ring_mul_mod, ring_vec_ring_vec_mul_mod
+from common import generate_ring_vec, ring_vec_ring_vec_mul_mod
 from params import *
 
 
