@@ -15,25 +15,26 @@ def generate_ring_vec():
     return ring
 
 
-def ring_mul_mod(a, b, poly_mod, mod):
-    factor = poly.polymul(a.coef, b.coef) % mod
-    _, reminder = poly.polydiv(factor, poly_mod.coef)
-    return Poly(reminder)
+def ring_mul_mod(a, b, mod):
+    factor = Poly([0 for _ in range(N)])
+    for i in range(N):
+        factor.coef[i] = (a.coef[i] * b.coef[i]) % mod
+    return factor
 
 
-def ring_vec_ring_mul_mod(ring_vec, ring, poly_mod, mod):
+def ring_vec_ring_mul_mod(ring_vec, ring, mod):
     result_ring = []
     for i in range(len(ring_vec)):
-        poly_factor = ring_mul_mod(ring_vec[i], ring, poly_mod, mod)
+        poly_factor = ring_mul_mod(ring_vec[i], ring, mod)
         poly_factor.coef %= mod
         result_ring.append(poly_factor)
     return result_ring
 
 
-def ring_vec_ring_vec_mul_mod(a, b, poly_mod, mod):
+def ring_vec_ring_vec_mul_mod(a, b, mod):
     result_ring = np.zeros(N)
     for i in range(len(a)):
-        poly_factor = ring_mul_mod(a[i], b[i], poly_mod, mod)
+        poly_factor = ring_mul_mod(a[i], b[i], mod)
         for j in range(N):
             result_ring[j] += poly_factor.coef[j]
             result_ring[j] %= mod
@@ -54,21 +55,16 @@ def scalar_ring_add(ring, scalar):
     return ring_copy
 
 
-def transform_ring_vec(
-        ring_vec: List[Poly], transform: Callable[[Poly, int], Any], param: int
-) -> List[Poly]:
-    ring_vec_copy = ring_vec.copy()
-    for i in range(len(ring_vec)):
-        ring_vec_copy[i] = transform(ring_vec[i], param)
-    return ring_vec_copy
-
-
 def lift(ring_vec: List[Poly], ring: Poly):
     ring_copy = ring.copy()
     ring_copy = scalar_ring_mul(ring_copy, -2)
     ring_copy = scalar_ring_add(ring_copy, Q)
     ring_copy.coef %= 2 * Q
-    return transform_ring_vec(ring_vec, scalar_ring_mul, 2) + [ring_copy]
+    ring_vec_copy = ring_vec.copy()
+    for i in range(len(ring_vec_copy)):
+        ring_vec_copy[i] = scalar_ring_mul(ring_vec_copy[i], 2)
+        ring_vec_copy[i].coef %= 2 * Q
+    return ring_vec_copy + [ring_copy]
 
 
 def h_one(
