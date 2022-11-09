@@ -15,7 +15,7 @@ def generate_ring_vec():
     return ring
 
 
-def ring_mul_mod(a, b, mod):
+def ring_mul(a, b, mod):
     factor = Poly([0 for _ in range(N)])
     for i in range(N):
         factor.coef[i] = (a.coef[i] * b.coef[i]) % mod
@@ -25,7 +25,7 @@ def ring_mul_mod(a, b, mod):
 def ring_vec_ring_mul_mod(ring_vec, ring, mod):
     result_ring = []
     for i in range(len(ring_vec)):
-        poly_factor = ring_mul_mod(ring_vec[i], ring, mod)
+        poly_factor = ring_mul(ring_vec[i], ring, mod)
         poly_factor.coef %= mod
         result_ring.append(poly_factor)
     return result_ring
@@ -34,7 +34,7 @@ def ring_vec_ring_mul_mod(ring_vec, ring, mod):
 def ring_vec_ring_vec_mul_mod(a, b, mod):
     result_ring = np.zeros(N)
     for i in range(len(a)):
-        poly_factor = ring_mul_mod(a[i], b[i], mod)
+        poly_factor = ring_mul(a[i], b[i], mod)
         for j in range(N):
             result_ring[j] += poly_factor.coef[j]
             result_ring[j] %= mod
@@ -88,8 +88,10 @@ def h_one(
 def random_byte_vectors():
     vectors = []
     for i in range(M):
-        vectors.append(Poly(np.random.normal(0, SIGMA, size=N)))
-        # vectors.append(Poly([1 for _ in range(N)]))
+        generated = np.random.normal(0, SIGMA, size=N)
+        for j in range(len(generated)):
+            generated[j] = int(generated[j])
+        vectors.append(Poly(generated))
     return vectors
 
 
@@ -102,5 +104,5 @@ def convert_bytes_to_poly(input_bytes):
         bitstring = ""
         for j in range(i * 14, 14 * (i + 1)):
             bitstring += str(bits[j])
-        ring.append(int(bitstring, 2) % (2 * Q))
+        ring.append(int(bitstring, 2) % Q)
     return Poly(ring)
