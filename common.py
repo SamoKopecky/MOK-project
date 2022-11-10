@@ -1,9 +1,8 @@
 from hashlib import shake_256
-from typing import Callable, Any, List
+from typing import List
 
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
-from numpy.polynomial import polynomial as poly
 
 from params import *
 
@@ -55,6 +54,13 @@ def scalar_ring_add(ring, scalar):
     return ring_copy
 
 
+def ring_add(a, b, mod):
+    result = Poly([0 for _ in range(N)])
+    for i in range(N):
+        result.coef[i] = (a.coef[i] + b.coef[i]) % mod
+    return result
+
+
 def lift(ring_vec: List[Poly], ring: Poly):
     ring_copy = ring.copy()
     ring_copy = scalar_ring_mul(ring_copy, -2)
@@ -104,5 +110,5 @@ def convert_bytes_to_poly(input_bytes):
         bitstring = ""
         for j in range(i * 14, 14 * (i + 1)):
             bitstring += str(bits[j])
-        ring.append(int(bitstring, 2) % Q)
+        ring.append(int(bitstring, 2))
     return Poly(ring)
