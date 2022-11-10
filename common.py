@@ -7,79 +7,74 @@ from numpy.polynomial import Polynomial as Poly
 from params import *
 
 
-def generate_ring_vec():
-    ring = []
-    for i in range(M - 1):
-        ring.append(Poly(np.random.randint(low=-12418, high=12418, size=N)))
-    return ring
+def gen_ring_vec(vec_size: int) -> List[Poly]:
+    vec = []
+    gen_range = int(2**GAMMA)
+    for i in range(vec_size):
+        # Generate a ring
+        vec.append(Poly(np.random.randint(low=-gen_range, high=gen_range, size=N)))
+    return vec
 
 
-def ring_mul(a, b, mod):
-    factor = Poly([0 for _ in range(N)])
-    for i in range(N):
-        factor.coef[i] = (a.coef[i] * b.coef[i]) % mod
-    return factor
+def random_ring_vec() -> List[Poly]:
+    vec = []
+    for i in range(M):
+        # Gaussian distribution
+        generated = np.random.normal(0, SIGMA, size=N).astype(int)
+        vec.append(Poly(generated))
+    return vec
 
 
-def ring_vec_ring_mul_mod(ring_vec, ring, mod):
-    result_ring = []
-    for i in range(len(ring_vec)):
-        poly_factor = ring_mul(ring_vec[i], ring, mod)
-        poly_factor.coef %= mod
-        result_ring.append(poly_factor)
-    return result_ring
-
-
-def ring_vec_ring_vec_mul_mod(a, b, mod):
-    result_ring = np.zeros(N)
-    for i in range(len(a)):
-        poly_factor = ring_mul(a[i], b[i], mod)
-        for j in range(N):
-            result_ring[j] += poly_factor.coef[j]
-            result_ring[j] %= mod
-    return Poly(result_ring)
-
-
-def scalar_ring_mul(ring, scalar):
-    ring_copy = ring.copy()
-    for i in range(N):
-        ring_copy.coef[i] *= scalar
-    return ring_copy
-
-
-def scalar_ring_add(ring, scalar):
-    ring_copy = ring.copy()
-    for i in range(N):
-        ring_copy.coef[i] += scalar
-    return ring_copy
-
-
-def ring_add(a, b, mod):
+def ring_sum(a: Poly, b: Poly, mod: int) -> Poly:
     result = Poly([0 for _ in range(N)])
     for i in range(N):
         result.coef[i] = (a.coef[i] + b.coef[i]) % mod
     return result
 
 
-def lift(ring_vec: List[Poly], ring: Poly):
+def ring_mul(a: Poly, b: Poly, mod: int) -> Poly:
+    factor = []
+    for i in range(N):
+        factor.append((a.coef[i] * b.coef[i]) % mod)
+    return Poly(factor)
+
+
+def ring_vec_ring_mul(ring_vec: List[Poly], ring: Poly, mod: int) -> List[Poly]:
+    result_ring_vec = []
+    for i in range(len(ring_vec)):
+        poly_factor = ring_mul(ring_vec[i], ring, mod)
+        poly_factor.coef %= mod
+        result_ring_vec.append(poly_factor)
+    return result_ring_vec
+
+
+def ring_vec_ring_vec_mul(a: List[Poly], b: List[Poly], mod: int) -> Poly:
+    ring = Poly([0 for _ in range(N)])
+    for i in range(len(a)):
+        poly_factor = ring_mul(a[i], b[i], mod)
+        ring = ring_sum(ring, poly_factor, mod)
+    return ring
+
+
+def lift(ring_vec: List[Poly], ring: Poly) -> List[Poly]:
     ring_copy = ring.copy()
-    ring_copy = scalar_ring_mul(ring_copy, -2)
-    ring_copy = scalar_ring_add(ring_copy, Q)
+    ring_copy = ring_copy * -2
+    ring_copy = ring_copy + Q
     ring_copy.coef %= 2 * Q
     ring_vec_copy = ring_vec.copy()
     for i in range(len(ring_vec_copy)):
-        ring_vec_copy[i] = scalar_ring_mul(ring_vec_copy[i], 2)
+        ring_vec_copy[i] = ring_vec_copy[i] * 2
         ring_vec_copy[i].coef %= 2 * Q
     return ring_vec_copy + [ring_copy]
 
 
 def h_one(
-        big_l: List[Poly],
-        big_h_2q: List[Poly],
-        message: int,
-        first: Poly,
-        second: Poly,
-):
+    big_l: List[Poly],
+    big_h_2q: List[Poly],
+    message: int,
+    first: Poly,
+    second: Poly,
+) -> bytes:
     shake = shake_256()
     for pub_key in big_l:
         shake.update(pub_key.coef)
@@ -91,17 +86,7 @@ def h_one(
     return shake.digest(int(N * 14 / 8))
 
 
-def random_byte_vectors():
-    vectors = []
-    for i in range(M):
-        generated = np.random.normal(0, SIGMA, size=N)
-        for j in range(len(generated)):
-            generated[j] = int(generated[j])
-        vectors.append(Poly(generated))
-    return vectors
-
-
-def convert_bytes_to_poly(input_bytes):
+def convert_bytes_to_poly(input_bytes: bytes) -> Poly:
     bits = []
     ring = []
     for i in range(len(input_bytes) * 8):
@@ -112,3 +97,22 @@ def convert_bytes_to_poly(input_bytes):
             bitstring += str(bits[j])
         ring.append(int(bitstring, 2))
     return Poly(ring)
+
+
+def flatten(array_of_arrays: List[List]) -> List:
+    result = []
+    for array in array_of_arrays:
+        for item in array:
+            result.append(item)
+    return result
+
+
+def unflatten(array: List, split_at: int) -> List[List]:
+    array_of_arrays = []
+    part = []
+    for i in range(len(array)):
+        part.append(array[i])
+        if (i + 1) % split_at == 0:
+            array_of_arrays.append(part)
+            part = []
+    return array_of_arrays
