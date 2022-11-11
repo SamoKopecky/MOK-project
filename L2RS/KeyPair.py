@@ -1,5 +1,5 @@
-from common import gen_ring_vec, ring_vec_ring_vec_mul
-from params import *
+from .common import gen_ring_vec, ring_vec_ring_vec_mul
+from .params import *
 
 
 class KeyPair:

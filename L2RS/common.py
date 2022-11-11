@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
 
-from params import *
+from .params import *
 
 
 def gen_ring_vec(vec_size: int) -> List[Poly]:

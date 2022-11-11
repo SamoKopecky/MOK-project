@@ -1,5 +1,5 @@
-from params import *
-from common import gen_ring_vec
+from .params import *
+from .common import gen_ring_vec
 
 
 class PubParams:
