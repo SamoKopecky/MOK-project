@@ -83,20 +83,27 @@ def h_one(
         shake.update(big_h_2q[i].coef)
     shake.update(first.coef)
     shake.update(second.coef)
-    return shake.digest(int(N * 14 / 8))
+    return shake.digest(int(N * L / 8))
 
 
-def convert_bytes_to_poly(input_bytes: bytes) -> Poly:
+def bytes_to_poly(input_bytes: bytes) -> Poly:
     bits = []
     ring = []
-    for i in range(len(input_bytes) * 8):
-        bits.append((input_bytes[int(i / 8)] // 2 ** (i % 8)) % 2)
+    for i in range(len(input_bytes)):
+        bits += [1 if input_bytes[i] & (1 << n) else 0 for n in range(8)]
     for i in range(N):
-        bitstring = ""
-        for j in range(i * 14, 14 * (i + 1)):
-            bitstring += str(bits[j])
-        ring.append(int(bitstring, 2))
+        ring.append(sum([bits[j + i * L] * (2**j) for j in range(L)]))
     return Poly(ring)
+
+
+def poly_to_bytes(poly: Poly) -> bytes:
+    bits = []
+    result_bytes = bytearray(b"")
+    for i in range(N):
+        bits += [1 if int(poly.coef[i]) & (1 << n) else 0 for n in range(L)]
+    for i in range(int(N * L / 8)):
+        result_bytes.append(sum([bits[j + i * 8] * (2**j) for j in range(8)]))
+    return bytes(result_bytes)
 
 
 def flatten(array_of_arrays: List[List]) -> List:

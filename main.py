@@ -10,11 +10,11 @@ from common import (
     lift,
     h_one,
     random_ring_vec,
-    convert_bytes_to_poly,
+    bytes_to_poly,
     ring_vec_ring_mul,
     ring_sum,
     flatten,
-    unflatten,
+    unflatten, poly_to_bytes,
 )
 from params import *
 
@@ -53,7 +53,7 @@ def sign(
         i_plus_one = (i + 1) % W
         big_a_i_2q = lift(pub_params.big_a, big_l[i])
         t[i] = random_ring_vec()
-        q_times_ci = convert_bytes_to_poly(c[i]) * Q
+        q_times_ci = bytes_to_poly(c[i]) * Q
         c[i_plus_one] = h_one(
             big_l,
             big_h_2q,
@@ -63,13 +63,13 @@ def sign(
         )
 
     b = (-1) ** (np.random.randint(low=0, high=2))
-    c_pi = convert_bytes_to_poly(c[pi]) * b
+    c_pi = bytes_to_poly(c[pi]) * b
     result = ring_vec_ring_mul(big_s_pi_2q, c_pi, Q)
     for i in range(len(result)):
         result[i] += u[i]
     t[pi] = result
     t = flatten(t)
-    return [convert_bytes_to_poly(c[0])] + t + [h]
+    return [bytes_to_poly(c[0])] + t + [h]
 
 
 def verify(
@@ -82,16 +82,13 @@ def verify(
 
     big_h_2q = lift(pub_params.big_h, h)
     c = [bytes(0) for _ in range(W)]
-    c[0] = signed_c1
+    c[0] = poly_to_bytes(signed_c1)
 
     for i in range(W):
         i %= W
         i_plus_one = (i + 1) % W
         big_a_i_2q = lift(pub_params.big_a, big_l[i])
-        if i == 0:
-            q_times_ci = c[i] * Q
-        else:
-            q_times_ci = convert_bytes_to_poly(c[i]) * Q
+        q_times_ci = bytes_to_poly(c[i]) * Q
         c[i_plus_one] = h_one(
             big_l,
             big_h_2q,
@@ -100,7 +97,7 @@ def verify(
             ring_sum(q_times_ci, ring_vec_ring_vec_mul(big_h_2q, t[i], Q), Q),
         )
 
-    verified_c1 = convert_bytes_to_poly(c[0])
+    verified_c1 = bytes_to_poly(c[0])
     return verified_c1 == signed_c1
 
 
