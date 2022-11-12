@@ -13,6 +13,7 @@ def gen_ring_vec(vec_size: int) -> List[Poly]:
     for i in range(vec_size):
         # Generate a ring
         vec.append(Poly(np.random.randint(low=-gen_range, high=gen_range, size=N)))
+        vec[i].coef %= Q
     return vec
 
 
@@ -21,6 +22,7 @@ def random_ring_vec() -> List[Poly]:
     for i in range(M):
         # Gaussian distribution
         generated = np.random.normal(0, SIGMA, size=N).astype(int)
+        generated %= Q
         vec.append(Poly(generated))
     return vec
 

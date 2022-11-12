@@ -2,6 +2,11 @@ import asyncio
 import socket
 import threading
 
+from L2RS.KeyPair import KeyPair
+from L2RS.PubParams import PubParams
+from L2RS.common import bytes_to_poly, poly_to_bytes
+from L2RS.params import *
+from L2RS.scheme import sign, verify
 from MsgType import MsgType
 from Role import Role
 from params import *
@@ -15,6 +20,9 @@ class Client:
         self.sock = None
         self.loop = None
         self.role = self.parse_role()
+        self.pub_params = PubParams()
+        self.key_pair = KeyPair()
+        self.keys = []
 
     @staticmethod
     def parse_role():
@@ -28,32 +36,60 @@ class Client:
         return role
 
     async def start_client(self):
+        # Init
         self.sock = socket.create_connection((self.server_addr, self.server_port))
+
+        # Request public parameters
         self.sock.send(create_data(MsgType.NEED_PUB_PARAMS))
-        pub_params = self.receive_data(MsgType.PUB_PARAMS)
-        print(f"Pub params: {pub_params}")
-        self.sock.send(create_data(MsgType.MY_PUB_KEY, b"my pub key"))
+        self.pub_params.from_bytes(self.receive(MsgType.PUB_PARAMS))
+
+        # Generate public key from received public parameters
+        self.key_pair.generate(self.pub_params.big_a)
+
+        # Send my public key
+        public_key = poly_to_bytes(self.key_pair.public_key)
+        self.sock.send(create_data(MsgType.MY_PUB_KEY, public_key))
+
         if self.role == Role.SIGNER:
             while True:
-                user_input = input("Create signature? (Y/N):")
-                if user_input.upper() == "Y":
-                    self.sock.send(create_data(MsgType.NEED_PUB_KEYS))
-                else:
-                    continue
-                data = self.receive_data(MsgType.PUB_KEYS)
-                print(f"some data: {data}")
-                self.sock.send(create_data(MsgType.SIGNATURE, b"signature"))
-                sign = self.receive_data(MsgType.SIGNATURE)
-                print(sign)
+                message = int(input("Enter a number to sign: "))
+
+                # Receive all public keys
+                self.get_public_keys()
+
+                # Chose PI
+                pi = 0
+                for i in range(len(self.keys)):
+                    if self.keys[i] == self.key_pair.public_key:
+                        pi = i
+
+                # Generate signature
+                signature = sign(
+                    pi,
+                    message,
+                    self.keys,
+                    self.pub_params,
+                    self.key_pair.private_key,
+                    len(self.keys),
+                )
+
+                # Send signature
+                signature_bytes = bytearray()
+                [signature_bytes.extend(poly_to_bytes(poly)) for poly in signature]
+                signature_bytes.extend(message.to_bytes(1, BYTEORDER))
+                self.sock.send(create_data(MsgType.SIGNATURE, signature_bytes))
+
+                # Verify signature
+                signature_bytes = self.receive(MsgType.SIGNATURE)
+                print(self.verify_signature(signature_bytes))
         elif self.role == Role.VERIFIER:
             while True:
-                signature = self.receive_data(MsgType.SIGNATURE)
-                print(f"got a signature: {signature}")
-                self.sock.send(create_data(MsgType.NEED_PUB_KEYS))
-                data = self.receive_data(MsgType.PUB_KEYS)
-                print(f"pub keys: {data}")
+                # Verify signature
+                signature_bytes = self.receive(MsgType.SIGNATURE)
+                self.get_public_keys()
+                print(self.verify_signature(signature_bytes))
 
-    def receive_data(self, expected_type: MsgType):
+    def receive(self, expected_type: MsgType):
         data = bytearray()
         data.extend(self.sock.recv(RECEIVE_LEN))
         msg_type, msg_len, data = parse_header(data)
@@ -69,7 +105,24 @@ class Client:
                 break
         return data
 
-    def receive_signature(self):
-        print("started")
-        signature = self.receive_data(MsgType.SIGNATURE)
-        print(f"got a signature: {signature}")
+    def get_public_keys(self):
+        self.sock.send(create_data(MsgType.NEED_PUB_KEYS))
+        data = self.receive(MsgType.PUB_KEYS)
+        read = 0
+        while read != len(data):
+            self.keys.append(bytes_to_poly(data[read : read + POLY_BYTES]))
+            read += POLY_BYTES
+
+    def verify_signature(self, data):
+        signature = []
+        for i in range(0, len(data) - 1, POLY_BYTES):
+            signature.append(bytes_to_poly(data[i : i + POLY_BYTES]))
+        message = data[-1]
+        print(f"Received message: {message}")
+        return verify(
+            signature,
+            message,
+            self.keys,
+            self.pub_params,
+            len(self.keys),
+        )

@@ -12,7 +12,7 @@ def create_data(msg_type: MsgType, data: bytes = b""):
     print(f"SENDING: {msg_type.name}")
     return (
         msg_type.value.to_bytes(TYPE_LEN, BYTEORDER)
-        + int.to_bytes(len(data), LEN_LEN, BYTEORDER)
+        + int.to_bytes(len(data), DATA_LEN_LEN, BYTEORDER)
         + data
     )
 
