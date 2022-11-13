@@ -25,6 +25,7 @@ class Client:
     async def start_client(self):
         # Init
         self.sock = socket.create_connection((self.proxy_address, self.proxy_port))
+        logging.info(f'connecting to {(self.proxy_address, self.proxy_port)}')
 
         # Request public parameters
         self.sock.send(create_data(MsgType.NEED_PUB_PARAMS))
@@ -97,6 +98,7 @@ class Client:
         return data
 
     def get_public_keys(self):
+        self.keys = []
         self.sock.send(create_data(MsgType.NEED_PUB_KEYS))
         data = self.receive(MsgType.PUB_KEYS)
         read = 0

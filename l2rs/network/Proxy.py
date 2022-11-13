@@ -57,6 +57,7 @@ class Proxy:
         server.bind((self.address, self.port))
         server.listen(255)
         server.setblocking(False)
+        logging.info(f'listening on {(self.address, self.port)}')
 
         loop = asyncio.get_event_loop()
 
