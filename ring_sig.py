@@ -16,8 +16,7 @@ def main():
     parser = argparse.ArgumentParser(
         prog="ring_sig", description="learning tool for the l2rs ring signature scheme"
     )
-    required = parser.add_argument_group()
-    role = required.add_mutually_exclusive_group(required=True)
+    role = parser.add_mutually_exclusive_group(required=True)
     action = parser.add_mutually_exclusive_group()
     role.add_argument("-c", "--client", action="store_true", help="run as client")
     role.add_argument(
@@ -26,7 +25,7 @@ def main():
         action="store_true",
         help="run as the server proxy to connect clients",
     )
-    required.add_argument(
+    role.add_argument(
         "-i", "--info", action="store_true", help="print current parameters"
     )
     action.add_argument(
@@ -53,7 +52,6 @@ def main():
         parsed_args.client
         and not parsed_args.signer
         and not parsed_args.verifier
-        and not parsed_args.info
     ):
         parser.error("one of the arguments -s/--signer -v/--verifier is required")
     if parsed_args.server_proxy and (parsed_args.signer or parsed_args.verifier):
