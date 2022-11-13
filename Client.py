@@ -14,26 +14,15 @@ from utils import create_data, parse_header
 
 
 class Client:
-    def __init__(self, port):
+    def __init__(self, port, bools):
         self.server_port = port
         self.server_addr = "127.0.0.1"
         self.sock = None
         self.loop = None
-        self.role = self.parse_role()
         self.pub_params = PubParams()
         self.key_pair = KeyPair()
         self.keys = []
-
-    @staticmethod
-    def parse_role():
-        role = None
-        while not role:
-            user_input = input("Verifier or signer? (0/1): ")
-            try:
-                role = Role(int(user_input))
-            except Exception as e:
-                print(e, "try again")
-        return role
+        self.role = Role.role_from_string(bools)
 
     async def start_client(self):
         # Init
