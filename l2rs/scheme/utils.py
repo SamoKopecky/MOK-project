@@ -73,14 +73,14 @@ def lift(ring_vec: List[Poly], ring: Poly) -> List[Poly]:
 def h_one(
     big_l: List[Poly],
     big_h_2q: List[Poly],
-    message: int,
+    message: bytes,
     first: Poly,
     second: Poly,
 ) -> bytes:
     shake = shake_256()
     for pub_key in big_l:
         shake.update(pub_key.coef)
-    shake.update(bytes(message))
+    shake.update(message)
     for i in range(M):
         shake.update(big_h_2q[i].coef)
     shake.update(first.coef)

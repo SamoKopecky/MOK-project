@@ -13,8 +13,8 @@ def parse_header(data: bytes):
 def create_data(msg_type: MsgType, data: bytes = b""):
     logging.info(f"sending {msg_type.name} with size {len(data)} B")
     return (
-        msg_type.value.to_bytes(TYPE_LEN, BYTEORDER)
-        + int.to_bytes(len(data), DATA_LEN_LEN, BYTEORDER)
+        msg_type.value.to_bytes(TYPE_BYTES, BYTEORDER)
+        + int.to_bytes(len(data), DATA_LEN_BYTES, BYTEORDER)
         + data
     )
 

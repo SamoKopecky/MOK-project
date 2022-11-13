@@ -21,7 +21,7 @@ from .utils import (
 
 def sign(
     pi: int,
-    message: int,
+    message: bytes,
     big_l: List[Poly],
     pub_params: PubParams,
     private_key: List[Poly],
@@ -80,7 +80,7 @@ def sign(
 
 def verify(
     signature: List[Poly],
-    message: int,
+    message: bytes,
     big_l: List[Poly],
     pub_params: PubParams,
     w: int,

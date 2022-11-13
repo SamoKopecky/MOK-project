@@ -20,19 +20,19 @@ Supports up to 255 verifying clients, one signer and one proxy.
     ./ring_sig.py -sp
     ```
    
-3. Run `n` verifying clients with
+3. Run `n` verifying clients with:
 
     ```shell
     ./ring_sig.py -c -v
     ```
    
-4. Run one signing client with
+4. Run one signing client with:
 
     ```shell
     ./ring_sig.py -c -s
     ```
    
-5. Optionally you can also choose the port for boothe proxy and clients
+5. Optionally you can also choose the port for boothe proxy and clients:
 
     ```shell
     ./ring_sig.py -p [PORT]
@@ -42,6 +42,14 @@ Supports up to 255 verifying clients, one signer and one proxy.
 
 Get help output with:
 ```shell
-./ring_sig.py -h 
+./ring_sig.py -h
 ```
+
+### Info
+
+Get the parameters with:
+```shell
+./ring_sig.py -i
+```
+
 

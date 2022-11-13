@@ -25,7 +25,7 @@ class Client:
     async def start_client(self):
         # Init
         self.sock = socket.create_connection((self.proxy_address, self.proxy_port))
-        logging.info(f'connecting to {(self.proxy_address, self.proxy_port)}')
+        logging.info(f"connecting to {(self.proxy_address, self.proxy_port)}")
 
         # Request public parameters
         self.sock.send(create_data(MsgType.NEED_PUB_PARAMS))
@@ -40,7 +40,7 @@ class Client:
 
         if self.role == Role.SIGNER:
             while True:
-                message = int(input("Enter a number to sign: "))
+                message = input("Enter a message to sign: ").encode("utf-8")
 
                 # Receive all public keys
                 self.get_public_keys()
@@ -64,7 +64,8 @@ class Client:
                 # Send signature
                 signature_bytes = bytearray()
                 [signature_bytes.extend(poly_to_bytes(poly)) for poly in signature]
-                signature_bytes.extend(message.to_bytes(1, BYTEORDER))
+                signature_bytes.extend(message)
+                signature_bytes.extend(len(message).to_bytes(2, BYTEORDER))
                 self.sock.send(create_data(MsgType.SIGNATURE, signature_bytes))
 
                 # Verify signature
@@ -108,10 +109,12 @@ class Client:
 
     def verify_signature(self, data):
         signature = []
-        for i in range(0, len(data) - 1, POLY_BYTES):
+        # Last MSG_LEN_LEN bytes
+        message_len = int.from_bytes(data[-MSG_LEN_BYTES:], BYTEORDER)
+        for i in range(0, len(data) - message_len - MSG_LEN_BYTES, POLY_BYTES):
             signature.append(bytes_to_poly(data[i : i + POLY_BYTES]))
-        message = data[-1]
-        logging.info(f"Received message: {message}")
+        message = data[len(data) - message_len - MSG_LEN_BYTES: len(data) - MSG_LEN_BYTES]
+        logging.info(f"Received message '{message.decode('utf-8')}' with size {message_len} B")
         return verify(
             signature,
             message,

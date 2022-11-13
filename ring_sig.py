@@ -6,6 +6,8 @@ import sys
 
 from l2rs.network.Client import Client
 from l2rs.network.Proxy import Proxy
+from l2rs.network.params import *
+from l2rs.scheme.params import *
 
 
 def main():
@@ -14,7 +16,8 @@ def main():
     parser = argparse.ArgumentParser(
         prog="ring_sig", description="learning tool for the l2rs ring signature scheme"
     )
-    role = parser.add_mutually_exclusive_group(required=True)
+    required = parser.add_argument_group()
+    role = required.add_mutually_exclusive_group(required=True)
     action = parser.add_mutually_exclusive_group()
     role.add_argument("-c", "--client", action="store_true", help="run as client")
     role.add_argument(
@@ -22,6 +25,9 @@ def main():
         "--server-proxy",
         action="store_true",
         help="run as the server proxy to connect clients",
+    )
+    required.add_argument(
+        "-i", "--info", action="store_true", help="print current parameters"
     )
     action.add_argument(
         "-s",
@@ -41,11 +47,24 @@ def main():
         help="port to run on, has to be same as the servers/clients",
         nargs="?",
     )
+
     parsed_args = parser.parse_args(sys.argv[1:])
-    if parsed_args.client and (not parsed_args.signer and not parsed_args.verifier):
+    if (
+        parsed_args.client
+        and not parsed_args.signer
+        and not parsed_args.verifier
+        and not parsed_args.info
+    ):
         parser.error("one of the arguments -s/--signer -v/--verifier is required")
+    if parsed_args.server_proxy and (parsed_args.signer or parsed_args.verifier):
+        parser.error(
+            "argument -sp/--server-proxy: not allowed with argument -s/--signer or -v/--verifier"
+        )
     bools = (parsed_args.signer, parsed_args.verifier)
 
+    if parsed_args.info:
+        print(get_params())
+        return
     if parsed_args.server_proxy:
         se = Proxy(parsed_args.port)
         asyncio.run(se.listen())
@@ -54,6 +73,24 @@ def main():
         cl = Client(parsed_args.port, bools)
         asyncio.run(cl.start_client())
         return
+
+
+def get_params():
+    return f"""Scheme parameters:
+    q: {Q}
+    n: {N}
+    m: {M}
+    sigma: {SIGMA}
+    gamma: {GAMMA}
+    ring/polynomial coefficient size: {L} B
+    ring/polynomial size: {POLY_BYTES} B
+Network parameters:
+    header size: {HEADER_BYTES} B
+    message type size: {TYPE_BYTES} B
+    data length size: {DATA_LEN_BYTES} B
+    maximum data length: {MAX_DATA_LEN} B
+    message length size: {MSG_LEN_BYTES} B
+    maximum message size: {MAX_MSG_SIZE} B"""
 
 
 def setup_logging():
