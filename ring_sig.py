@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
-import asyncio
-
-from L2RS.KeyPair import KeyPair
-from L2RS.PubParams import PubParams
-from L2RS.scheme import sign, verify
-from Client import Client
-from Server import Server
-import sys
 import argparse
+import asyncio
+import sys
+
+from l2rs.network.Client import Client
+from l2rs.network.Proxy import Proxy
 
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="l2rs",
+        prog="ring_sig", description="learning tool for the l2rs ring signature scheme"
     )
     role = parser.add_mutually_exclusive_group(required=True)
     action = parser.add_mutually_exclusive_group()
@@ -48,7 +45,7 @@ def main():
     bools = (parsed_args.signer, parsed_args.verifier)
 
     if parsed_args.server_proxy:
-        se = Server(port)
+        se = Proxy(port)
         asyncio.run(se.listen())
         return
     if parsed_args.client:

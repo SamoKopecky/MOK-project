@@ -1,8 +1,10 @@
-import numpy as np
 from typing import List
+
+import numpy as np
 from numpy.polynomial import Polynomial as Poly
+
 from .PubParams import PubParams
-from .common import (
+from .utils import (
     ring_vec_ring_vec_mul,
     lift,
     h_one,

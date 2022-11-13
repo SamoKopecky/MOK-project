@@ -1,22 +1,20 @@
-import asyncio
 import socket
-import threading
 
-from L2RS.KeyPair import KeyPair
-from L2RS.PubParams import PubParams
-from L2RS.common import bytes_to_poly, poly_to_bytes
-from L2RS.params import *
-from L2RS.scheme import sign, verify
-from MsgType import MsgType
-from Role import Role
-from params import *
-from utils import create_data, parse_header
+from .MsgType import MsgType
+from .Role import Role
+from .params import *
+from .utils import create_data, parse_header
+from ..scheme.KeyPair import KeyPair
+from ..scheme.PubParams import PubParams
+from ..scheme.utils import bytes_to_poly, poly_to_bytes
+from ..scheme.params import *
+from ..scheme.scheme import sign, verify
 
 
 class Client:
     def __init__(self, port, bools):
-        self.server_port = port
-        self.server_addr = "127.0.0.1"
+        self.proxy_port = port
+        self.proxy_address = "127.0.0.1"
         self.sock = None
         self.loop = None
         self.pub_params = PubParams()
@@ -26,7 +24,7 @@ class Client:
 
     async def start_client(self):
         # Init
-        self.sock = socket.create_connection((self.server_addr, self.server_port))
+        self.sock = socket.create_connection((self.proxy_address, self.proxy_port))
 
         # Request public parameters
         self.sock.send(create_data(MsgType.NEED_PUB_PARAMS))

@@ -1,6 +1,7 @@
-from .params import *
-from .common import gen_ring_vec, poly_to_bytes, bytes_to_poly
 from numpy.polynomial import Polynomial as Poly
+
+from .utils import gen_ring_vec, poly_to_bytes, bytes_to_poly
+from .params import *
 
 
 class PubParams:

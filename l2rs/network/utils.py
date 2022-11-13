@@ -1,5 +1,5 @@
-from MsgType import MsgType
-from params import *
+from .MsgType import MsgType
+from .params import *
 
 
 def parse_header(data: bytes):

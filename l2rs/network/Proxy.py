@@ -1,14 +1,14 @@
 import asyncio
 import socket
 
-from L2RS.PubParams import PubParams
-from L2RS.common import poly_to_bytes, bytes_to_poly
-from MsgType import MsgType
-from utils import parse_header, create_data
-from params import *
+from .MsgType import MsgType
+from .params import *
+from .utils import parse_header, create_data
+from ..scheme.PubParams import PubParams
+from ..scheme.utils import poly_to_bytes, bytes_to_poly
 
 
-class Server:
+class Proxy:
     def __init__(self, port):
         super().__init__()
         self.port = port
@@ -50,16 +50,6 @@ class Server:
                         conn, create_data(MsgType.SIGNATURE, signature)
                     )
 
-    @staticmethod
-    async def receive(received: int, msg_len: int, loop, client, data):
-        while received != msg_len:
-            data_chunk = await loop.sock_recv(client, RECEIVE_LEN)
-            data.extend(data_chunk)
-            received += len(data_chunk)
-            if not data_chunk or received == msg_len:
-                break
-        return data
-
     async def listen(self):
         self.pub_params.generate()
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -74,3 +64,13 @@ class Server:
             self.connections.append(client)
             print(f"connection {addr}")
             loop.create_task(self.handle_client(client))
+
+    @staticmethod
+    async def receive(received: int, msg_len: int, loop, client, data):
+        while received != msg_len:
+            data_chunk = await loop.sock_recv(client, RECEIVE_LEN)
+            data.extend(data_chunk)
+            received += len(data_chunk)
+            if not data_chunk or received == msg_len:
+                break
+        return data
