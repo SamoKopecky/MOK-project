@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import socket
 
 from .MsgType import MsgType
@@ -26,7 +27,7 @@ class Proxy:
             data.extend(await loop.sock_recv(client, RECEIVE_LEN))
             msg_type, msg_len, data = parse_header(data)
             received = len(data)
-            print(f"RECEIVED: {msg_type.name}")
+            logging.info(f"receiving {msg_type.name} with size {msg_len} B")
 
             if msg_type == MsgType.NEED_PUB_PARAMS:
                 # Send public parameters
@@ -62,7 +63,7 @@ class Proxy:
         while True:
             client, addr = await loop.sock_accept(server)
             self.connections.append(client)
-            print(f"connection {addr}")
+            logging.info(f"connection from {addr}")
             loop.create_task(self.handle_client(client))
 
     @staticmethod

@@ -1,7 +1,9 @@
+import logging
+
 from numpy.polynomial import Polynomial as Poly
 
-from .utils import gen_ring_vec, ring_vec_ring_vec_mul
 from .params import *
+from .utils import gen_ring_vec, ring_vec_ring_vec_mul
 
 
 class KeyPair:
@@ -10,5 +12,7 @@ class KeyPair:
         self.public_key = []
 
     def generate(self, pub_param_a):
+        logging.info("generating key pair ...")
         self.private_key = gen_ring_vec(M - 1)  # a
         self.public_key = ring_vec_ring_vec_mul(pub_param_a, self.private_key, Q)  # S
+        logging.info("done generating key pair ...")

@@ -1,9 +1,11 @@
+import logging
 from typing import List
 
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
 
 from .PubParams import PubParams
+from .params import *
 from .utils import (
     ring_vec_ring_vec_mul,
     lift,
@@ -15,7 +17,6 @@ from .utils import (
     flatten,
     unflatten,
 )
-from .params import *
 
 
 def sign(
@@ -26,6 +27,7 @@ def sign(
     private_key: List[Poly],
     w: int,
 ) -> List[Poly]:
+    logging.info("signing ...")
     big_s_pi = private_key
     big_s_pi_2q = big_s_pi + [Poly([1 for _ in range(N)])]
 
@@ -72,6 +74,7 @@ def sign(
         result[i] = ring_sum(result[i], u[i], Q)
     t[pi] = result
     t = flatten(t)
+    logging.info("done signing ...")
     return [c[0]] + t + [h]
 
 
@@ -82,6 +85,7 @@ def verify(
     pub_params: PubParams,
     w: int,
 ) -> bool:
+    logging.info("verifying ...")
     signed_c1 = signature[0]
     t = unflatten(signature[1 : len(signature) - 1], M)
     h = signature[len(signature) - 1]
@@ -106,4 +110,5 @@ def verify(
         )
 
     verified_c1 = c[0]
+    logging.info("done verifying ...")
     return verified_c1 == signed_c1

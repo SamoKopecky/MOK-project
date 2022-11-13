@@ -1,3 +1,4 @@
+import logging
 import socket
 
 from .MsgType import MsgType
@@ -6,9 +7,9 @@ from .params import *
 from .utils import create_data, parse_header
 from ..scheme.KeyPair import KeyPair
 from ..scheme.PubParams import PubParams
-from ..scheme.utils import bytes_to_poly, poly_to_bytes
 from ..scheme.params import *
 from ..scheme.scheme import sign, verify
+from ..scheme.utils import bytes_to_poly, poly_to_bytes
 
 
 class Client:
@@ -16,7 +17,6 @@ class Client:
         self.proxy_port = port
         self.proxy_address = "127.0.0.1"
         self.sock = None
-        self.loop = None
         self.pub_params = PubParams()
         self.key_pair = KeyPair()
         self.keys = []
@@ -68,19 +68,23 @@ class Client:
 
                 # Verify signature
                 signature_bytes = self.receive(MsgType.SIGNATURE)
-                print(self.verify_signature(signature_bytes))
+                logging.info(
+                    f"signature verified: {self.verify_signature(signature_bytes)}"
+                )
         elif self.role == Role.VERIFIER:
             while True:
                 # Verify signature
                 signature_bytes = self.receive(MsgType.SIGNATURE)
                 self.get_public_keys()
-                print(self.verify_signature(signature_bytes))
+                logging.info(
+                    f"signature verified: {self.verify_signature(signature_bytes)}"
+                )
 
     def receive(self, expected_type: MsgType):
         data = bytearray()
         data.extend(self.sock.recv(RECEIVE_LEN))
         msg_type, msg_len, data = parse_header(data)
-        print(f"RECEIVED: {msg_type.name}")
+        logging.info(f"receiving {msg_type.name} with size {msg_len} B")
         if msg_type is not expected_type:
             raise "Server error"
         received = len(data)
@@ -105,7 +109,7 @@ class Client:
         for i in range(0, len(data) - 1, POLY_BYTES):
             signature.append(bytes_to_poly(data[i : i + POLY_BYTES]))
         message = data[-1]
-        print(f"Received message: {message}")
+        logging.info(f"Received message: {message}")
         return verify(
             signature,
             message,

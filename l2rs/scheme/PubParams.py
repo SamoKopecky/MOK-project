@@ -1,7 +1,9 @@
+import logging
+
 from numpy.polynomial import Polynomial as Poly
 
-from .utils import gen_ring_vec, poly_to_bytes, bytes_to_poly
 from .params import *
+from .utils import gen_ring_vec, poly_to_bytes, bytes_to_poly
 
 
 class PubParams:
@@ -10,8 +12,10 @@ class PubParams:
         self.big_h = [Poly(0) for _ in range(M - 1)]
 
     def generate(self):
+        logging.info('generating pub params ...')
         self.big_a = gen_ring_vec(M - 1)
         self.big_h = gen_ring_vec(M - 1)
+        logging.info('done generating pub params ...')
 
     def to_bytes(self):
         data = bytearray()

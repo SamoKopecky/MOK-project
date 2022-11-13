@@ -1,3 +1,5 @@
+import logging
+
 from .MsgType import MsgType
 from .params import *
 
@@ -9,7 +11,7 @@ def parse_header(data: bytes):
 
 
 def create_data(msg_type: MsgType, data: bytes = b""):
-    print(f"SENDING: {msg_type.name}")
+    logging.info(f"sending {msg_type.name} with size {len(data)} B")
     return (
         msg_type.value.to_bytes(TYPE_LEN, BYTEORDER)
         + int.to_bytes(len(data), DATA_LEN_LEN, BYTEORDER)
