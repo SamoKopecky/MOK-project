@@ -3,14 +3,40 @@ import argparse
 import asyncio
 import logging
 import sys
+import time
 
 from l2rs.network.Client import Client
 from l2rs.network.Proxy import Proxy
 from l2rs.network.params import *
+from l2rs.scheme.KeyPair import KeyPair
+from l2rs.scheme.PubParams import PubParams
 from l2rs.scheme.params import *
+from l2rs.scheme.scheme import sign, verify
+
+
+
 
 
 def main():
+    # pub_params = PubParams()
+    # pub_params.generate()
+    # message = b'abc'
+    # pi = 1  # Actually pi = 2
+    #
+    # W = 4
+    # key_pairs_2 = [KeyPair() for _ in range(W)]
+    # [key.generate(pub_params.big_a) for key in key_pairs_2]
+    # key_pairs = [key_pairs_2[i].public_key for i in range(W)]
+    #
+    # signature = sign(pi, message, key_pairs, pub_params, key_pairs_2[pi].private_key, W)
+    # time_m = []
+    # for i in range(100):
+    #     print(i)
+    #     tic = time.perf_counter()
+    #     verified = verify(signature, message, key_pairs, pub_params, W)
+    #     toc = time.perf_counter()
+    #     time_m.append(toc - tic)
+    # print(sum(time_m) / len(time_m))
     setup_logging()
 
     parser = argparse.ArgumentParser(
