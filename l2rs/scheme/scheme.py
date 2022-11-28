@@ -16,6 +16,7 @@ from .utils import (
     ring_sum,
     flatten,
     unflatten,
+    scalar_vec_mul,
 )
 
 
@@ -35,6 +36,8 @@ def sign(
 
     big_h_2q = lift(pub_params.big_h, h)
     big_a_pi_2q = lift(pub_params.big_a, big_l[pi])
+
+    print(ring_vec_ring_vec_mul(big_h_2q, big_s_pi_2q, 2 * Q))
 
     u = random_ring_vec()
 
@@ -68,7 +71,7 @@ def sign(
         )
 
     b = (-1) ** (np.random.randint(low=0, high=2))
-    c_pi = c[pi] * b
+    c_pi = scalar_vec_mul(c[pi], b)
     result = ring_vec_ring_mul(big_s_pi_2q, c_pi, Q)
     for i in range(len(result)):
         result[i] = ring_sum(result[i], u[i], Q)

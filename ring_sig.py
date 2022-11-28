@@ -3,7 +3,6 @@ import argparse
 import asyncio
 import logging
 import sys
-import time
 
 from l2rs.network.Client import Client
 from l2rs.network.Proxy import Proxy
@@ -14,29 +13,23 @@ from l2rs.scheme.params import *
 from l2rs.scheme.scheme import sign, verify
 
 
+def run_single_iteration():
+    pub_params = PubParams()
+    pub_params.generate()
+    message = b"abc"
+    pi = 1  # Actually pi = 2
+
+    W = 4
+    key_pairs = [KeyPair() for _ in range(W)]
+    [key.generate(pub_params.big_a) for key in key_pairs]
+    public_keys = [key_pairs[i].public_key for i in range(W)]
+
+    signature = sign(pi, message, public_keys, pub_params, key_pairs[pi].private_key, W)
+    verified = verify(signature, message, public_keys, pub_params, W)
+    print(verified)
 
 
-
-def main():
-    # pub_params = PubParams()
-    # pub_params.generate()
-    # message = b'abc'
-    # pi = 1  # Actually pi = 2
-    #
-    # W = 4
-    # key_pairs_2 = [KeyPair() for _ in range(W)]
-    # [key.generate(pub_params.big_a) for key in key_pairs_2]
-    # key_pairs = [key_pairs_2[i].public_key for i in range(W)]
-    #
-    # signature = sign(pi, message, key_pairs, pub_params, key_pairs_2[pi].private_key, W)
-    # time_m = []
-    # for i in range(100):
-    #     print(i)
-    #     tic = time.perf_counter()
-    #     verified = verify(signature, message, key_pairs, pub_params, W)
-    #     toc = time.perf_counter()
-    #     time_m.append(toc - tic)
-    # print(sum(time_m) / len(time_m))
+def start_with_options():
     setup_logging()
 
     parser = argparse.ArgumentParser(
@@ -74,11 +67,7 @@ def main():
     )
 
     parsed_args = parser.parse_args(sys.argv[1:])
-    if (
-        parsed_args.client
-        and not parsed_args.signer
-        and not parsed_args.verifier
-    ):
+    if parsed_args.client and not parsed_args.signer and not parsed_args.verifier:
         parser.error("one of the arguments -s/--signer -v/--verifier is required")
     if parsed_args.server_proxy and (parsed_args.signer or parsed_args.verifier):
         parser.error(
@@ -131,6 +120,11 @@ def setup_logging():
     )
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+
+
+def main():
+    # start_with_options()
+    run_single_iteration()
 
 
 if __name__ == "__main__":

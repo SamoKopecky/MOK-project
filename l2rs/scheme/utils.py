@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
+from numpy.polynomial import polynomial as poly_poly
 
 from .params import *
 
@@ -34,6 +35,17 @@ def ring_sum(a: Poly, b: Poly, mod: int) -> Poly:
     return result
 
 
+# def ring_mul(a, b, mod):
+#     poly_mod = Poly([0 for _ in range(N + 1)])
+#     poly_mod.coef[0] = 1
+#     poly_mod.coef[N] = 1
+#     factor = poly_poly.polymul(a.coef, b.coef)
+#     _, reminder = poly_poly.polydiv(factor, poly_mod.coef)
+#     result = Poly(reminder)
+#     result.coef %= mod
+#     return result
+
+
 def ring_mul(a: Poly, b: Poly, mod: int) -> Poly:
     factor = []
     for i in range(N):
@@ -58,14 +70,28 @@ def ring_vec_ring_vec_mul(a: List[Poly], b: List[Poly], mod: int) -> Poly:
     return ring
 
 
+def scalar_vec_mul(vec: Poly, scalar: int):
+    ring_copy = vec.copy()
+    for i in range(N):
+        ring_copy.coef[i] *= scalar
+    return ring_copy
+
+
+def scalar_vec_add(vec: Poly, scalar: int):
+    ring_copy = vec.copy()
+    for i in range(N):
+        ring_copy.coef[i] += scalar
+    return ring_copy
+
+
 def lift(ring_vec: List[Poly], ring: Poly) -> List[Poly]:
     ring_copy = ring.copy()
-    ring_copy = ring_copy * -2
-    ring_copy = ring_copy + Q
+    ring_copy = scalar_vec_mul(ring_copy, -2)
+    ring_copy = scalar_vec_add(ring_copy, Q)
     ring_copy.coef %= 2 * Q
     ring_vec_copy = ring_vec.copy()
     for i in range(len(ring_vec_copy)):
-        ring_vec_copy[i] = ring_vec_copy[i] * 2
+        ring_vec_copy[i] = scalar_vec_mul(ring_vec_copy[i], 2)
         ring_vec_copy[i].coef %= 2 * Q
     return ring_vec_copy + [ring_copy]
 
