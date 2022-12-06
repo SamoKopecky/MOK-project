@@ -37,8 +37,6 @@ def sign(
     big_h_2q = lift(pub_params.big_h, h)
     big_a_pi_2q = lift(pub_params.big_a, big_l[pi])
 
-    print(ring_vec_ring_vec_mul(big_h_2q, big_s_pi_2q, 2 * Q))
-
     u = random_ring_vec()
 
     c = [Poly(0) for _ in range(w)]

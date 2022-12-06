@@ -3,7 +3,6 @@ from typing import List
 
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
-from numpy.polynomial import polynomial as poly_poly
 
 from .params import *
 
@@ -33,17 +32,6 @@ def ring_sum(a: Poly, b: Poly, mod: int) -> Poly:
     for i in range(N):
         result.coef[i] = (a.coef[i] + b.coef[i]) % mod
     return result
-
-
-# def ring_mul(a, b, mod):
-#     poly_mod = Poly([0 for _ in range(N + 1)])
-#     poly_mod.coef[0] = 1
-#     poly_mod.coef[N] = 1
-#     factor = poly_poly.polymul(a.coef, b.coef)
-#     _, reminder = poly_poly.polydiv(factor, poly_mod.coef)
-#     result = Poly(reminder)
-#     result.coef %= mod
-#     return result
 
 
 def ring_mul(a: Poly, b: Poly, mod: int) -> Poly:

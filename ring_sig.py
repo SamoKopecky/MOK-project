@@ -123,8 +123,8 @@ def setup_logging():
 
 
 def main():
-    # start_with_options()
-    run_single_iteration()
+    start_with_options()
+    # run_single_iteration()
 
 
 if __name__ == "__main__":
