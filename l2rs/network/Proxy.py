@@ -10,7 +10,7 @@ from ..scheme.utils import poly_to_bytes, bytes_to_poly
 
 
 class Proxy:
-    def __init__(self, port):
+    def __init__(self, port: int):
         super().__init__()
         self.port = port
         self.address = "127.0.0.1"
@@ -18,7 +18,7 @@ class Proxy:
         self.pub_keys = []
         self.pub_params = PubParams()
 
-    async def handle_client(self, client):
+    async def handle_client(self, client: socket.socket):
         loop = asyncio.get_event_loop()
 
         while True:
@@ -68,7 +68,7 @@ class Proxy:
             loop.create_task(self.handle_client(client))
 
     @staticmethod
-    async def receive(received: int, msg_len: int, loop, client, data):
+    async def receive(received: int, msg_len: int, loop, client, data) -> bytes:
         while received != msg_len:
             data_chunk = await loop.sock_recv(client, RECEIVE_LEN)
             data.extend(data_chunk)

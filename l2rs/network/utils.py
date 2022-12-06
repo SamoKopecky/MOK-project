@@ -17,8 +17,3 @@ def create_data(msg_type: MsgType, data: bytes = b""):
         + int.to_bytes(len(data), DATA_LEN_BYTES, BYTEORDER)
         + data
     )
-
-
-def to_int(data: bytearray):
-    data = bytes(data)
-    return int(data)

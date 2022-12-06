@@ -12,12 +12,12 @@ class PubParams:
         self.big_h = [Poly(0) for _ in range(M - 1)]
 
     def generate(self):
-        logging.info('generating pub params ...')
+        logging.info("generating pub params ...")
         self.big_a = gen_ring_vec(M - 1)
         self.big_h = gen_ring_vec(M - 1)
-        logging.info('done generating pub params ...')
+        logging.info("done generating pub params ...")
 
-    def to_bytes(self):
+    def to_bytes(self) -> bytearray:
         data = bytearray()
         for i in range(M - 1):
             data.extend(poly_to_bytes(self.big_h[i]))
@@ -25,7 +25,7 @@ class PubParams:
             data.extend(poly_to_bytes(self.big_a[i]))
         return data
 
-    def from_bytes(self, data):
+    def from_bytes(self, data: bytes):
         for i in range(M - 1):
             j = i * POLY_BYTES
             self.big_h[i] = bytes_to_poly(data[j : j + POLY_BYTES])

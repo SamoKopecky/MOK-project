@@ -11,7 +11,7 @@ class KeyPair:
         self.private_key = Poly(0)
         self.public_key = []
 
-    def generate(self, pub_param_a):
+    def generate(self, pub_param_a: list[Poly]):
         logging.info("generating key pair ...")
         self.private_key = gen_ring_vec(M - 1)  # a
         self.public_key = ring_vec_ring_vec_mul(pub_param_a, self.private_key, Q)  # S

@@ -1,5 +1,6 @@
 import logging
 import socket
+from typing import Tuple
 
 from .MsgType import MsgType
 from .Role import Role
@@ -13,7 +14,7 @@ from ..scheme.utils import bytes_to_poly, poly_to_bytes
 
 
 class Client:
-    def __init__(self, port, bools):
+    def __init__(self, port: int, bools: Tuple[bool, bool]):
         self.proxy_port = port
         self.proxy_address = "127.0.0.1"
         self.sock = None
@@ -65,7 +66,7 @@ class Client:
                 signature_bytes = bytearray()
                 [signature_bytes.extend(poly_to_bytes(poly)) for poly in signature]
                 signature_bytes.extend(message)
-                signature_bytes.extend(len(message).to_bytes(2, BYTEORDER))
+                signature_bytes.extend(len(message).to_bytes(MSG_LEN_BYTES, BYTEORDER))
                 self.sock.send(create_data(MsgType.SIGNATURE, signature_bytes))
 
                 # Verify signature
@@ -82,7 +83,7 @@ class Client:
                     f"signature verified: {self.verify_signature(signature_bytes)}"
                 )
 
-    def receive(self, expected_type: MsgType):
+    def receive(self, expected_type: MsgType) -> bytes:
         data = bytearray()
         data.extend(self.sock.recv(RECEIVE_LEN))
         msg_type, msg_len, data = parse_header(data)
@@ -107,14 +108,18 @@ class Client:
             self.keys.append(bytes_to_poly(data[read : read + POLY_BYTES]))
             read += POLY_BYTES
 
-    def verify_signature(self, data):
+    def verify_signature(self, data: bytes) -> bool:
         signature = []
         # Last MSG_LEN_LEN bytes
         message_len = int.from_bytes(data[-MSG_LEN_BYTES:], BYTEORDER)
         for i in range(0, len(data) - message_len - MSG_LEN_BYTES, POLY_BYTES):
             signature.append(bytes_to_poly(data[i : i + POLY_BYTES]))
-        message = data[len(data) - message_len - MSG_LEN_BYTES: len(data) - MSG_LEN_BYTES]
-        logging.info(f"Received message '{message.decode('utf-8')}' with size {message_len} B")
+        message = data[
+            len(data) - message_len - MSG_LEN_BYTES : len(data) - MSG_LEN_BYTES
+        ]
+        logging.info(
+            f"Received message '{message.decode('utf-8')}' with size {message_len} B"
+        )
         return verify(
             signature,
             message,
