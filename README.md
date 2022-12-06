@@ -8,7 +8,7 @@ The applications consists of two parts:
 
 ## How to run
 
-Supports up to 255 verifying clients, one signer and one proxy.
+Supports up to 65534 verifying clients, one signer and one proxy.
 
 1. Install required dependencies with:
     ```shell
