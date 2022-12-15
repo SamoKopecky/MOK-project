@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import logging
 import sys
+from timeit import timeit
 
 from l2rs.network.Client import Client
 from l2rs.network.Proxy import Proxy
@@ -13,20 +14,57 @@ from l2rs.scheme.params import *
 from l2rs.scheme.scheme import sign, verify
 
 
+def benchmark(participants, iterations):
+    setup_code = f"""\
+pub_params = PubParams();
+pub_params.generate();
+message = b"abc";
+pi = 1;
+
+W = {participants};
+key_pairs = [KeyPair() for _ in range(W)];
+[key.generate(pub_params.big_a) for key in key_pairs];
+public_keys = [key_pairs[i].public_key for i in range(W)];
+signature = sign(pi, message, public_keys, pub_params, key_pairs[pi].private_key, W);
+    """
+    sign_sum = timeit(
+        "sign(pi, message, public_keys, pub_params, key_pairs[pi].private_key, W)",
+        number=iterations,
+        globals=globals(),
+        setup=setup_code,
+    )
+    verify_sum = timeit(
+        "verified = verify(signature, message, public_keys, pub_params, W)",
+        number=iterations,
+        globals=globals(),
+        setup=setup_code,
+    )
+    print(get_benchmark_result(participants, iterations, sign_sum))
+    print(get_benchmark_result(participants, iterations, verify_sum))
+
+
+def get_benchmark_result(participants, iterations, sum_time):
+    sum_text = f"{iterations} sign iterations with {participants} participants took: {sum_time * 1000:.4f} ms"
+    avg_text = f"an iteration with {participants} participants took on average: {(sum_time / iterations) * 1000:.4f} ms"
+    return sum_text + "\n" + avg_text
+
+
 def run_single_iteration():
     pub_params = PubParams()
     pub_params.generate()
     message = b"abc"
     pi = 1  # Actually pi = 2
 
-    W = 4
-    key_pairs = [KeyPair() for _ in range(W)]
+    big_w = 5
+    key_pairs = [KeyPair() for _ in range(big_w)]
     [key.generate(pub_params.big_a) for key in key_pairs]
-    public_keys = [key_pairs[i].public_key for i in range(W)]
+    public_keys = [key_pairs[i].public_key for i in range(big_w)]
 
-    signature = sign(pi, message, public_keys, pub_params, key_pairs[pi].private_key, W)
-    verified = verify(signature, message, public_keys, pub_params, W)
-    print(verified)
+    signature = sign(
+        pi, message, public_keys, pub_params, key_pairs[pi].private_key, big_w
+    )
+    verified = verify(signature, message, public_keys, pub_params, big_w)
+    print(f"Verified: {verified}")
 
 
 def start_with_options():
@@ -45,7 +83,24 @@ def start_with_options():
         help="run as the server proxy to connect clients",
     )
     role.add_argument(
-        "-i", "--info", action="store_true", help="print current parameters"
+        "-pp",
+        "--program-parameters",
+        action="store_true",
+        help="print current parameters",
+    )
+    role.add_argument(
+        "-b",
+        "--benchmark",
+        type=int,
+        metavar="w",
+        help="run a benchmark for w participants",
+        nargs="?",
+    )
+    role.add_argument(
+        "-jr",
+        "--just-run",
+        action="store_true",
+        help="run a single iteration and print output",
     )
     action.add_argument(
         "-s",
@@ -55,6 +110,15 @@ def start_with_options():
     )
     action.add_argument(
         "-v", "--verifier", action="store_true", help="only verify received signatures"
+    )
+    parser.add_argument(
+        "-i",
+        "--iterations",
+        type=int,
+        default=50,
+        metavar="n",
+        help="run a benchmark with n iterations (only works for the benchmark functionality)",
+        nargs="?",
     )
     parser.add_argument(
         "-p",
@@ -75,7 +139,7 @@ def start_with_options():
         )
     bools = (parsed_args.signer, parsed_args.verifier)
 
-    if parsed_args.info:
+    if parsed_args.program_parameters:
         print(get_params())
         return
     if parsed_args.server_proxy:
@@ -86,6 +150,11 @@ def start_with_options():
         cl = Client(parsed_args.port, bools)
         asyncio.run(cl.start_client())
         return
+    if parsed_args.benchmark:
+        benchmark(parsed_args.benchmark, parsed_args.iterations)
+        return
+    if parsed_args.just_run:
+        run_single_iteration()
 
 
 def get_params():
@@ -124,7 +193,6 @@ def setup_logging():
 
 def main():
     start_with_options()
-    # run_single_iteration()
 
 
 if __name__ == "__main__":
