@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 from numpy.polynomial import Polynomial as Poly
@@ -85,7 +85,7 @@ def verify(
     big_l: List[Poly],
     pub_params: PubParams,
     w: int,
-) -> bool:
+) -> Tuple[bool, Poly]:
     logging.info("verifying ...")
     signed_c1 = signature[0]
     t = unflatten(signature[1 : len(signature) - 1], M)
@@ -112,4 +112,4 @@ def verify(
 
     verified_c1 = c[0]
     logging.info("done verifying ...")
-    return verified_c1 == signed_c1
+    return verified_c1 == signed_c1, h

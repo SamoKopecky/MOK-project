@@ -34,7 +34,7 @@ signature = sign(pi, message, public_keys, pub_params, key_pairs[pi].private_key
         setup=setup_code,
     )
     verify_sum = timeit(
-        "verified = verify(signature, message, public_keys, pub_params, W)",
+        "verified, _ = verify(signature, message, public_keys, pub_params, W)",
         number=iterations,
         globals=globals(),
         setup=setup_code,
@@ -63,7 +63,7 @@ def run_single_iteration():
     signature = sign(
         pi, message, public_keys, pub_params, key_pairs[pi].private_key, big_w
     )
-    verified = verify(signature, message, public_keys, pub_params, big_w)
+    verified, _ = verify(signature, message, public_keys, pub_params, big_w)
     print(f"Verified: {verified}")
 
 

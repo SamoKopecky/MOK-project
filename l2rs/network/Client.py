@@ -2,6 +2,8 @@ import logging
 import socket
 from typing import Tuple
 
+from numpy.polynomial import Polynomial as Poly
+
 from .MsgType import MsgType
 from .Role import Role
 from .params import *
@@ -22,6 +24,7 @@ class Client:
         self.key_pair = KeyPair()
         self.keys = []
         self.role = Role.role_from_string(bools)
+        self.last_h = None
 
     async def start_client(self):
         # Init
@@ -71,17 +74,16 @@ class Client:
 
                 # Verify signature
                 signature_bytes = self.receive(MsgType.SIGNATURE)
-                logging.info(
-                    f"signature verified: {self.verify_signature(signature_bytes)}"
-                )
+                h = self.verify_signature(signature_bytes)
+                self.check_signer(h)
+
         elif self.role == Role.VERIFIER:
             while True:
                 # Verify signature
                 signature_bytes = self.receive(MsgType.SIGNATURE)
                 self.get_public_keys()
-                logging.info(
-                    f"signature verified: {self.verify_signature(signature_bytes)}"
-                )
+                h = self.verify_signature(signature_bytes)
+                self.check_signer(h)
 
     def receive(self, expected_type: MsgType) -> bytes:
         data = bytearray()
@@ -108,7 +110,7 @@ class Client:
             self.keys.append(bytes_to_poly(data[read : read + POLY_BYTES]))
             read += POLY_BYTES
 
-    def verify_signature(self, data: bytes) -> bool:
+    def verify_signature(self, data: bytes):
         signature = []
         # Last MSG_LEN_LEN bytes
         message_len = int.from_bytes(data[-MSG_LEN_BYTES:], BYTEORDER)
@@ -120,10 +122,22 @@ class Client:
         logging.info(
             f"Received message '{message.decode('utf-8')}' with size {message_len} B"
         )
-        return verify(
+        verified, h = verify(
             signature,
             message,
             self.keys,
             self.pub_params,
             len(self.keys),
         )
+        logging.info(f"signature verified: {verified}")
+        return h
+
+    def check_signer(self, h: Poly):
+        if not self.last_h:
+            self.last_h = h
+            return
+        if self.last_h == h:
+            logging.info("Last two signatures are linked")
+        else:
+            logging.info("Last two signatures are not linked")
+        self.last_h = h
