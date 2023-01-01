@@ -176,16 +176,16 @@ Network parameters:
 
 
 def setup_logging():
-    blue = "\033[1;34m"
-    green = "\033[1;33m"
+    blue = "\033[34m"
+    grey = "\033[37m"
     reset = "\x1b[0m"
 
     logger = logging.getLogger(__package__)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        f"{green}%(asctime)s{reset} {blue}[%(levelname)s]{reset}: %(message)s"
+        f"{grey}%(asctime)s{reset} {blue}[%(levelname)s]{reset}: %(message)s"
     )
     ch.setFormatter(formatter)
     logger.addHandler(ch)
