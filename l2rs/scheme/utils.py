@@ -35,9 +35,9 @@ def ring_sum(a: Poly, b: Poly, mod: int) -> Poly:
 
 
 def ring_mul(a: Poly, b: Poly, mod: int) -> Poly:
-    factor = []
+    factor = [0 for _ in range(N)]
     for i in range(N):
-        factor.append((a.coef[i] * b.coef[i]) % mod)
+        factor[i] = (a.coef[i] * b.coef[i]) % mod
     return Poly(factor)
 
 

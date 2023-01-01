@@ -38,6 +38,15 @@ Supports up to 65534 verifying clients, one signer and one proxy.
     ./ring_sig.py -p [PORT]
     ```
    
+
+## How to benchmark
+
+The number of benchmark iterations can be chosen with the `-i/--iterations` option. To run the benchmark use `-b/--benchamrk` and supply the number of participants as an argument. See an example bellow for 4 participants and 100 iterations:
+
+```shell
+./ring_sig.py -b 4 -i 100
+```
+
 ### Help
 
 Get help output with:
